@@ -18,6 +18,7 @@ from nextcord.ext.commands import Bot, ExtensionAlreadyLoaded
 
 # Local code
 from shodan import __version__
+from shodan.utils.keep_alive import webserver
 
 from ..events._helper import after_cmd_invoke
 from ..utils import logging
@@ -46,6 +47,7 @@ class BaseMainBot(Bot):
         self.guild: Guild | None = None
         self.session = aiohttp.ClientSession(trust_env=True)
         self.after_invoke(after_cmd_invoke)
+        webserver()
 
     @property
     def member(self):

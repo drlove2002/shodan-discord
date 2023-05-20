@@ -3,7 +3,10 @@ from threading import Thread
 
 from flask import Flask
 
-app = Flask("")
+from shodan.utils.logging import get_logger
+
+logger = get_logger(__name__)
+app = Flask("Shodan")
 
 
 @app.route("/")
@@ -12,7 +15,11 @@ def home():
 
 
 def run():
-    app.run(host="0.0.0.0", port=randint(2000, 9000))
+    from waitress import serve
+
+    # set logger
+    logger.info("Starting webserver...")
+    serve(app, host="0.0.0.0", port=randint(2000, 9000), _quiet=True)
 
 
 def webserver():

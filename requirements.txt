@@ -2,3 +2,4 @@ nextcord[speed]
 uvloop
 colorama
 flask
+waitress

@@ -15,6 +15,7 @@ colorama = "^0.4.4"
 uvloop = "^0.17.0"
 nextcord = "^2.3.2"
 flask = "^2.0.1"
+waitress = "^2.1.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
@@ -26,7 +27,7 @@ python-dotenv = "^1.0.0"
 
 [tool.semantic_release]
 branch = "master"
-version_variable = ["mainbot/__init__.py:__version__","pyproject.toml:tool.poetry.version"]
+version_variable = ["shodan/__init__.py:__version__","pyproject.toml:tool.poetry.version"]
 version_toml = "pyproject.toml:tool.poetry.version"
 upload_to_pypi = false
 upload_to_release = false
