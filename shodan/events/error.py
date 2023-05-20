@@ -1,4 +1,5 @@
-from nextcord import DiscordException
+from nextcord import DiscordException, ApplicationError
+from nextcord.application_command import Interaction, ApplicationCheckFailure
 from nextcord.ext.commands import (
     CommandOnCooldown,
     MissingPermissions,
@@ -37,6 +38,13 @@ class ErrorHandler(Cog):
         ).info()
 
     @Cog.listener()
+    async def on_application_command_error(self, interaction: Interaction, error: ApplicationError):
+        if isinstance(error, ApplicationCheckFailure):
+            await Raise(interaction, str(error)).info()
+            return
+
+        raise error
+    @Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError):
         try:
             await ctx.message.delete(delay=2)
@@ -53,6 +61,7 @@ class ErrorHandler(Cog):
         ):
             await Raise(ctx, str(error)).info()
             ctx.command.reset_cooldown(ctx)
+            return
         if hasattr(error, "original") and str(error.original).startswith("[Errno 104]"):
             await Raise(ctx, "I am having trouble connecting to the internet").info()
             ctx.command.reset_cooldown(ctx)
