@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import os
 import subprocess
 from asyncio import create_task
@@ -41,7 +42,7 @@ async def restart(bot: MainBot) -> None:
         status=Status.idle,
         activity=Activity(type=ActivityType.watching, name="and Restarting...⚠️"),
     )
-    run_command(f"python3 restart.py {os.getpid()}")
+    bot.loop.run_in_executor(None, functools.partial(os.system, "python3 restart.py " + str(os.getpid())))
     logger.info("↻ Restarting bot...")
     await close(bot)
 
@@ -55,8 +56,6 @@ async def close(bot: MainBot) -> None:
         task.cancel("Bot is logging out")
     await bot.session.close()
     await bot.close()
-    bot.db.close()
-    await bot.sql.close()
     bot.loop.stop()
 
 

@@ -56,6 +56,7 @@ class Developer(Cog):
                 description=f"***⏳Restarting...***",
             ),
         )
+        msg = await msg.fetch()
 
         upsert_json({"restart_msg": msg.id, "restart_channel": msg.channel.id}, "config")
         asyncio.create_task(restart(self.bot))

@@ -18,23 +18,13 @@ def is_running(pid):
     else:
         return True
 
-
-def kill_sh_process():
-    process = Popen(["ps", "-fC", "sh"], stdout=PIPE, text=True)
-    process.wait()
-    for output in process.communicate()[0].split("\n"):
-        if output and "bot" in output:
-            kill(int(output.split()[1]), 9)
-
-
 def main():
-    kill_sh_process()
     while True:
         if is_running(args.pid):
             sleep(1)
             continue
 
-        system(f"python shodan {getpid()}")
+        system(f"python3 shodan {getpid()}")
         exit(0)
 
 
