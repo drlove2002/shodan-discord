@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import io
-import json
 from datetime import datetime
 from os import getenv
 from json import JSONDecodeError
@@ -13,15 +12,21 @@ from nextcord import (
     Embed,
     Forbidden,
     Member,
-    File, ui,
+    File,
+    ui,
 )
-from nextcord.application_command import slash_command, Interaction, ApplicationCommandType, Range
+from nextcord.application_command import (
+    slash_command,
+    Interaction,
+    ApplicationCommandType,
+    Range,
+)
 from nextcord.ext.commands import (
     Cog,
 )
 
 from shodan.core.paginator import PaginatorView
-from shodan.utils.json import read_json
+from shodan.core.views import Vulnerability
 from shodan.utils.logging import get_logger
 from shodan.utils.util import Raise, code_block
 
@@ -82,7 +87,6 @@ class Member(Cog):
                 params=perms,
             )
             results = await results.json()
-            # results  = read_json("search_results")
         except JSONDecodeError:
             return await Raise(inter, "Invalid JSON response from Shodan API",  edit=msg).error()
         except Forbidden as e:
@@ -102,7 +106,7 @@ class Member(Cog):
                 timestamp=datetime.fromisoformat(match["timestamp"]) if match["timestamp"] else None,
             ).add_field(
                 name="🌐 IP-Address",
-                value=code_block(f"{match['ip_str']}:{match['port']}"),
+                value=code_block(f"{match['ip_str']}:{match['port']}", "rb"),
                 inline=False,
             ).set_author(
                 name=f"Location: {match['location']['city']}, {match['location']['country_name']}",
@@ -113,21 +117,62 @@ class Member(Cog):
 
             if match["hostnames"]:
                 embed.add_field(
-                    name="📛Hostnames",
-                    value=code_block(json.dumps(match["hostnames"], indent=2), "json"),
+                    name="📛 Hostnames",
+                    value=code_block("\n".join(match["hostnames"]), "py"),
                     inline=False,
                 )
 
             embeds.append(embed)
 
         view = PaginatorView(inter.user, embeds)
+        vulnerability = Vulnerability()
+        view.add_item(vulnerability)
+
+        async def vulnerability_callback(interaction: Interaction):
+            """Callback for vulnerability button"""
+            await interaction.send(embed=Embed(description="***⏳Searching...***"), ephemeral=True)
+            ems = []
+            for cve, data in results["matches"][view.index]["vulns"].items():
+                ems.append(Embed(
+                    title=cve,
+                    color=Colour.random(seed=cve),
+                    description=data["summary"],
+                    url=data["references"][0],
+                ).add_field(
+                    name="🎚 CVSS",
+                    value=code_block(data["cvss"]),
+                ).add_field(
+                    name="Verified",
+                    value=code_block(data["verified"]),
+                ))
+            vuln_view = PaginatorView(interaction.user, ems)
+
+            async def _callback(_):
+                for item in vuln_view.children:
+                    if isinstance(item, ui.Button) and item.custom_id == "page_count":
+                        item.label = f"Page {vuln_view.index + 1}/{len(ems)}"
+
+                await interaction.edit_original_message(embed=ems[vuln_view.index], view=vuln_view)
+            vuln_view.button_callback = _callback
+
+            await _callback(None)
+
+
+
+        vulnerability.callback = vulnerability_callback
 
         async def button_callback(_):
+            match_result = results["matches"][view.index]
             for item in view.children:
                 item: ui.Button
                 if item.custom_id == "page_count":
                     item.label = f"Page {view.index + 1}/{len(view.embeds)}"
-            match_result = results["matches"][view.index]
+                if item.custom_id == "search-vulnerabilities":
+                    if "vulns" in match_result and match_result["vulns"]:
+                        item.disabled = False
+                    else:
+                        item.disabled = True
+
             if "http" in results["matches"][view.index]:
                 headers = io.BytesIO(results["matches"][view.index]["data"].split("\r\n\r\n")[0].encode("utf-8"))
                 files = [File(fp=headers, filename="headers.txt")]
