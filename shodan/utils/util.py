@@ -6,13 +6,10 @@ from typing import NamedTuple
 
 from nextcord import (
     AllowedMentions,
-    Color,
     Colour,
     DiscordException,
     Embed,
-    Emoji,
     Interaction,
-    Member,
     Message,
     Thread,
 )
@@ -43,7 +40,7 @@ async def get_message(
      or
      - False (bool) : If a timeout occurs
     """
-    embed = Embed(title=title, description=description, color=Color.dark_theme())
+    embed = Embed(title=title, description=description, color=Colour.dark_theme())
     origin = await ctx.send(content, embed=embed)
     try:
         msg = await ctx.bot.wait_for(
@@ -175,7 +172,7 @@ class Raise:
         )
         if isinstance(self.ctx, Interaction):
             if self.edit:
-                if isinstance(self.edit, Message):
+                if not isinstance(self.edit, bool):
                     return await self.edit.edit(embed=em, view=self.view)
                 return await self.ctx.edit(embed=em, view=self.view)
             return await self.ctx.send(
@@ -204,7 +201,6 @@ class Raise:
                 return await self.edit.edit(
                     content=self.ctx.author.mention,
                     embed=em,
-                    delete_after=self.del_after,
                     view=self.view,
                     allowed_mentions=allowed_mentions,
                 )
@@ -225,7 +221,7 @@ class Raise:
 
     async def error(self) -> Message | None:
         return await self.__response(
-            RaiseType("⚠ ", Colour.red())
+            RaiseType("⚠️ ", Colour.red())
         )
 
     async def info(self) -> Message | None:
@@ -235,7 +231,7 @@ class Raise:
 
     async def success(self) -> Message | None:
         return await self.__response(
-            RaiseType("<a:check:896366284239962143>", Colour.green())
+            RaiseType("✅ ", Colour.green())
         )
 
     async def loading(self) -> Message | None:
