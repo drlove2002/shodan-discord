@@ -7,13 +7,7 @@ from asyncio import create_task
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from nextcord import (
-    Activity,
-    ActivityType,
-    Colour,
-    Embed,
-    Status,
-)
+from nextcord import Activity, ActivityType, Colour, Embed, Status
 from nextcord.ext.commands import ExtensionAlreadyLoaded
 
 from shodan.utils import logging
@@ -42,7 +36,9 @@ async def restart(bot: MainBot) -> None:
         status=Status.idle,
         activity=Activity(type=ActivityType.watching, name="and Restarting...⚠️"),
     )
-    bot.loop.run_in_executor(None, functools.partial(os.system, "python3 restart.py " + str(os.getpid())))
+    bot.loop.run_in_executor(
+        None, functools.partial(os.system, "python3 restart.py " + str(os.getpid()))
+    )
     logger.info("↻ Restarting bot...")
     await close(bot)
 
@@ -65,9 +61,9 @@ async def post_restart(bot: MainBot) -> None:
     # Load restart configs from config.json
     data = read_json("config")
     if "restart_msg" in data:
-        msg = await bot.get_channel(
-            int(data.pop("restart_channel"))
-        ).fetch_message(int(data.pop("restart_msg")))
+        msg = await bot.get_channel(int(data.pop("restart_channel"))).fetch_message(
+            int(data.pop("restart_msg"))
+        )
         create_task(
             msg.edit(
                 embed=Embed(
@@ -84,6 +80,7 @@ async def post_restart(bot: MainBot) -> None:
         bot.loop.add_signal_handler(sig, lambda: create_task(close(bot)))
 
     bot.guild = bot.get_guild(bot.default_guild_ids[0])
+
 
 def load_cogs(bot: MainBot) -> None:
     """Add all cogs to the bot."""

@@ -1,17 +1,17 @@
-from nextcord import DiscordException, ApplicationError
-from nextcord.application_command import Interaction, ApplicationCheckFailure
+from nextcord import ApplicationError, DiscordException
+from nextcord.application_command import ApplicationCheckFailure, Interaction
 from nextcord.ext.commands import (
-    CommandOnCooldown,
-    MissingPermissions,
     BotMissingPermissions,
-    Context,
     Cog,
     CommandError,
-    ConversionError,
-    UserInputError,
-    MissingRole,
     CommandInvokeError,
+    CommandOnCooldown,
+    Context,
+    ConversionError,
     MaxConcurrencyReached,
+    MissingPermissions,
+    MissingRole,
+    UserInputError,
 )
 
 from shodan.utils.util import Raise, humanize_time
@@ -38,12 +38,15 @@ class ErrorHandler(Cog):
         ).info()
 
     @Cog.listener()
-    async def on_application_command_error(self, interaction: Interaction, error: ApplicationError):
+    async def on_application_command_error(
+        self, interaction: Interaction, error: ApplicationError
+    ):
         if isinstance(error, ApplicationCheckFailure):
             await Raise(interaction, str(error)).info()
             return
 
         raise error
+
     @Cog.listener()
     async def on_command_error(self, ctx: Context, error: CommandError):
         try:

@@ -3,7 +3,7 @@ from pathlib import Path
 
 __all__ = ["read_json", "write_json", "unset_json", "upsert_json"]
 
-from typing import List, Dict, Union, Any, Optional
+from typing import Any
 
 
 def get_path():
@@ -17,7 +17,7 @@ def get_path():
     return cwd
 
 
-def read_json(filename) -> Optional[Union[Dict, List]]:
+def read_json(filename) -> dict | list | None:
     """
     A function to read a json file and return the data.
     Params:
@@ -27,14 +27,14 @@ def read_json(filename) -> Optional[Union[Dict, List]]:
     """
     cwd = get_path()
     try:
-        with open(cwd + "/assets/" + filename + ".json", "r", encoding="utf8") as file:
+        with open(cwd + "/assets/" + filename + ".json", encoding="utf8") as file:
             data = json.load(file)
     except FileNotFoundError:
         data = None
     return data
 
 
-def write_json(data: Dict[str, Union[str, int, List[Any], Dict[Any, Any]]], filename):
+def write_json(data: dict[str, str | int | list[Any] | dict[Any, Any]], filename):
     """
     A function used to write data to a json file
     Params:
@@ -46,7 +46,7 @@ def write_json(data: Dict[str, Union[str, int, List[Any], Dict[Any, Any]]], file
         json.dump(data, file, indent=4)
 
 
-def unset_json(data: List[str], filename):
+def unset_json(data: list[str], filename):
     """A function to remove a value from a json file"""
     json_data = read_json(filename)
     for value in data:
@@ -55,7 +55,7 @@ def unset_json(data: List[str], filename):
     write_json(json_data, filename)
 
 
-def upsert_json(data: Dict[str, Union[str, int, List[Any], Dict[Any, Any]]], filename):
+def upsert_json(data: dict[str, str | int | list[Any] | dict[Any, Any]], filename):
     """A function to update a json file"""
     config = read_json(filename)
     if config:

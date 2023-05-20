@@ -6,7 +6,6 @@ from typing import TypeVar
 # Third party libraries
 import aiohttp
 
-
 try:
     from dotenv import load_dotenv  # type: ignore
 
@@ -20,9 +19,9 @@ from nextcord.ext.commands import Bot, ExtensionAlreadyLoaded
 # Local code
 from shodan import __version__
 
+from ..events._helper import after_cmd_invoke
 from ..utils import logging
 from ..utils.modules import load_cogs, load_events, post_restart
-from ..events._helper import after_cmd_invoke
 
 ROOT_DIR = str(Path(__file__).parents[1])
 logger = logging.get_logger(__name__)
@@ -87,6 +86,7 @@ class BaseMainBot(Bot):
 
     # async def get_prefix(self, message) -> list[str]:
     #     return when_mentioned_or("$" if self.test else "shodan")(self, message)
+
 
 MainBot = TypeVar("MainBot", bound=BaseMainBot)
 "MainBot will be used only for typehints of BaseMainBot"

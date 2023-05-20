@@ -1,6 +1,5 @@
 from urllib.request import urlopen
 
-
 NORMALIZE_CHARS = {
     "Š": "S",
     "š": "s",

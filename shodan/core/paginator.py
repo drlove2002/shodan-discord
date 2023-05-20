@@ -1,17 +1,8 @@
 from __future__ import annotations
-from typing import Optional
 
-from nextcord import (
-    ButtonStyle,
-    Interaction,
-    ui,
-    Embed,
-    Message,
-    Member,
-)
+from nextcord import ButtonStyle, Embed, Interaction, Member, Message, ui
 
 from shodan.utils.util import Raise
-
 
 __all__ = ["Paginator"]
 
@@ -32,18 +23,21 @@ class Paginator:
     __slots__ = ("ctx", "embeds", "view")
 
     def __init__(
-        self, ctx: Message | Interaction, embeds: list[Embed], items: Optional[list[ui.Item]] = None,
+        self,
+        ctx: Message | Interaction,
+        embeds: list[Embed],
+        items: list[ui.Item] | None = None,
     ):
         self.ctx = ctx
         self.embeds = embeds
         self.view = PaginatorView(
             self.ctx.user if isinstance(self.ctx, Interaction) else self.ctx.author,
-            self.embeds
+            self.embeds,
         )
         for i in items or []:
             self.view.add_item(i)
 
-    async def start(self, *, edit_msg: Optional[Message] = None):
+    async def start(self, *, edit_msg: Message | None = None):
         if edit_msg:
             if len(self.embeds) < 2:
                 self.view.children = self.view.children[4:]
@@ -74,7 +68,7 @@ class PaginatorView(ui.View):
         self.user = user
         self.embeds = embeds
         self.index = 0
-        self.msg: Optional[Message] = None
+        self.msg: Message | None = None
         self.add_item(
             ui.Button(
                 custom_id="page_count",

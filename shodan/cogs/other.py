@@ -2,28 +2,19 @@ from __future__ import annotations
 
 import io
 from datetime import datetime
-from os import getenv
 from json import JSONDecodeError
+from os import getenv
 from typing import TYPE_CHECKING
 
 from aiohttp import ClientResponseError
-from nextcord import (
-    Colour,
-    Embed,
-    Forbidden,
-    Member,
-    File,
-    ui,
-)
+from nextcord import Colour, Embed, File, Forbidden, ui
 from nextcord.application_command import (
-    slash_command,
-    Interaction,
     ApplicationCommandType,
+    Interaction,
     Range,
+    slash_command,
 )
-from nextcord.ext.commands import (
-    Cog,
-)
+from nextcord.ext.commands import Cog
 
 from shodan.core.paginator import PaginatorView
 from shodan.core.views import Vulnerability
@@ -36,7 +27,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class Member(Cog):
+class Other(Cog):
     """Commands related to members"""
 
     def __init__(self, bot: MainBot):
@@ -50,7 +41,13 @@ class Member(Cog):
         await inter.send(f"> Pong! `{round(self.bot.latency * 1000)}ms`")
 
     @slash_command()
-    async def search(self, inter: Interaction, query: str, facets: str = None, page: Range[1, 100] = 1):
+    async def search(
+        self,
+        inter: Interaction,
+        query: str,
+        facets: str = None,
+        page: Range[1, 100] = 1,
+    ):
         """Do Shodan search
 
         Parameters
@@ -65,16 +62,17 @@ class Member(Cog):
         """
         if not self._shodan_key:
             cmd = self.bot.get_application_command_from_signature(
-                "setkey",
-                ApplicationCommandType.chat_input,
-                inter.guild_id
+                "setkey", ApplicationCommandType.chat_input, inter.guild_id
             )
-            return await Raise(inter, f"First set SHODAN_API_KEY via {cmd.get_mention(inter.guild)} command").error() # noqa
+            return await Raise(
+                inter,
+                f"First set SHODAN_API_KEY via {cmd.get_mention(inter.guild)} command",  # noqa
+            ).error()
 
         msg = await inter.send(
             embed=Embed(
                 color=Colour.brand_red(),
-                description=f"***⏳Searching...***",
+                description="***⏳Searching...***",
             ),
         )
 
@@ -88,32 +86,43 @@ class Member(Cog):
             )
             results = await results.json()
         except JSONDecodeError:
-            return await Raise(inter, "Invalid JSON response from Shodan API",  edit=msg).error()
+            return await Raise(
+                inter, "Invalid JSON response from Shodan API", edit=msg
+            ).error()
         except Forbidden as e:
             return await Raise(inter, f"[Status-{e.status}] {e.text}", edit=msg).error()
-        except ClientResponseError  as e:
-            return await Raise(inter, f"[Status-{e.status}]  {e.message}", edit=msg).error()
+        except ClientResponseError as e:
+            return await Raise(
+                inter, f"[Status-{e.status}]  {e.message}", edit=msg
+            ).error()
 
         if not results["matches"]:
             return await Raise(inter, "No results found", edit=msg).error()
 
         embeds = []
         for match in results["matches"]:
-            embed = Embed(
-                title=match["org"],
-                color=Colour.random(seed=match['ip_str']),
-                url=f"https://www.shodan.io/host/{match['ip_str']}",
-                timestamp=datetime.fromisoformat(match["timestamp"]) if match["timestamp"] else None,
-            ).add_field(
-                name="🌐 IP-Address",
-                value=code_block(f"{match['ip_str']}:{match['port']}", "rb"),
-                inline=False,
-            ).set_author(
-                name=f"Location: {match['location']['city']}, {match['location']['country_name']}",
-                url=f"https://www.google.com/maps/search/"
+            embed = (
+                Embed(
+                    title=match["org"],
+                    color=Colour.random(seed=match["ip_str"]),
+                    url=f"https://www.shodan.io/host/{match['ip_str']}",
+                    timestamp=datetime.fromisoformat(match["timestamp"])
+                    if match["timestamp"]
+                    else None,
+                )
+                .add_field(
+                    name="🌐 IP-Address",
+                    value=code_block(f"{match['ip_str']}:{match['port']}", "rb"),
+                    inline=False,
+                )
+                .set_author(
+                    name=f"Location: {match['location']['city']}, {match['location']['country_name']}",
+                    url=f"https://www.google.com/maps/search/"
                     f"{match['location']['latitude']},{match['location']['longitude']}",
-                icon_url="https://cdn-icons-png.flaticon.com/512/2875/2875433.png",
-            ).set_footer(text=f"Total Pages: {results['total']}")
+                    icon_url="https://cdn-icons-png.flaticon.com/512/2875/2875433.png",
+                )
+                .set_footer(text=f"Total Pages: {results['total']}")
+            )
 
             if match["hostnames"]:
                 embed.add_field(
@@ -130,21 +139,27 @@ class Member(Cog):
 
         async def vulnerability_callback(interaction: Interaction):
             """Callback for vulnerability button"""
-            await interaction.send(embed=Embed(description="***⏳Searching...***"), ephemeral=True)
+            await interaction.send(
+                embed=Embed(description="***⏳Searching...***"), ephemeral=True
+            )
             ems = []
             for cve, data in results["matches"][view.index]["vulns"].items():
-                ems.append(Embed(
-                    title=cve,
-                    color=Colour.random(seed=cve),
-                    description=data["summary"],
-                    url=data["references"][0],
-                ).add_field(
-                    name="🎚 CVSS",
-                    value=code_block(data["cvss"]),
-                ).add_field(
-                    name="Verified",
-                    value=code_block(data["verified"]),
-                ))
+                ems.append(
+                    Embed(
+                        title=cve,
+                        color=Colour.random(seed=cve),
+                        description=data["summary"],
+                        url=data["references"][0],
+                    )
+                    .add_field(
+                        name="🎚 CVSS",
+                        value=code_block(data["cvss"]),
+                    )
+                    .add_field(
+                        name="Verified",
+                        value=code_block(data["verified"]),
+                    )
+                )
             vuln_view = PaginatorView(interaction.user, ems)
 
             async def _callback(_):
@@ -152,12 +167,13 @@ class Member(Cog):
                     if isinstance(item, ui.Button) and item.custom_id == "page_count":
                         item.label = f"Page {vuln_view.index + 1}/{len(ems)}"
 
-                await interaction.edit_original_message(embed=ems[vuln_view.index], view=vuln_view)
+                await interaction.edit_original_message(
+                    embed=ems[vuln_view.index], view=vuln_view
+                )
+
             vuln_view.button_callback = _callback
 
             await _callback(None)
-
-
 
         vulnerability.callback = vulnerability_callback
 
@@ -174,12 +190,28 @@ class Member(Cog):
                         item.disabled = True
 
             if "http" in results["matches"][view.index]:
-                headers = io.BytesIO(results["matches"][view.index]["data"].split("\r\n\r\n")[0].encode("utf-8"))
+                headers = io.BytesIO(
+                    results["matches"][view.index]["data"]
+                    .split("\r\n\r\n")[0]
+                    .encode("utf-8")
+                )
                 files = [File(fp=headers, filename="headers.txt")]
                 if "html" in match_result["http"]:
-                    files.append(File(fp=io.BytesIO(match_result["http"]["html"].encode("utf-8")), filename="page.html"))
+                    files.append(
+                        File(
+                            fp=io.BytesIO(match_result["http"]["html"].encode("utf-8")),
+                            filename="page.html",
+                        )
+                    )
             elif "data" in results["matches"][view.index]:
-                files = [File(fp=io.BytesIO(results["matches"][view.index]["data"].encode("utf-8")), filename="data.txt")]
+                files = [
+                    File(
+                        fp=io.BytesIO(
+                            results["matches"][view.index]["data"].encode("utf-8")
+                        ),
+                        filename="data.txt",
+                    )
+                ]
             else:
                 files = None
             await view.msg.edit(embed=embeds[view.index], view=view, files=files)
@@ -191,4 +223,4 @@ class Member(Cog):
 
 
 def setup(bot: MainBot):
-    bot.add_cog(Member(bot))
+    bot.add_cog(Other(bot))

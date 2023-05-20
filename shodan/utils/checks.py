@@ -72,6 +72,7 @@ def has_guild_permissions(*, checks=all, **perms):
 
     return check(pred)
 
+
 # These do not take channel overrides into account
 
 
@@ -106,6 +107,7 @@ def is_in_guilds(*guild_ids):
         return guild.id in guild_ids
 
     return check(predicate)
+
 
 def in_dm(ctx: Context):
     return not ctx.guild

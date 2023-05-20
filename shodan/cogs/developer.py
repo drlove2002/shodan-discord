@@ -10,12 +10,10 @@ from traceback import format_exc
 from typing import TYPE_CHECKING
 
 from nextcord import Colour, Embed
-from nextcord.application_command import slash_command, Interaction
-from nextcord.ext.application_checks import is_owner,bot_has_permissions
 from nextcord import __version__ as dpy_v
-from nextcord.ext.commands import (
-    Cog,
-)
+from nextcord.application_command import Interaction, slash_command
+from nextcord.ext.application_checks import bot_has_permissions, is_owner
+from nextcord.ext.commands import Cog
 
 from shodan.core.paginator import Paginator
 from shodan.utils import logging
@@ -53,12 +51,14 @@ class Developer(Cog):
         msg = await inter.send(
             embed=Embed(
                 color=Colour.brand_red(),
-                description=f"***⏳Restarting...***",
+                description="***⏳Restarting...***",
             ),
         )
         msg = await msg.fetch()
 
-        upsert_json({"restart_msg": msg.id, "restart_channel": msg.channel.id}, "config")
+        upsert_json(
+            {"restart_msg": msg.id, "restart_channel": msg.channel.id}, "config"
+        )
         asyncio.create_task(restart(self.bot))
 
     @slash_command(name="taskcount")
@@ -91,7 +91,9 @@ class Developer(Cog):
     )
     @is_owner()
     async def logout(self, inter: Interaction):
-        await inter.send(f"Hey {inter.user.mention}, I am now logging out :wave:", ephemeral=True)
+        await inter.send(
+            f"Hey {inter.user.mention}, I am now logging out :wave:", ephemeral=True
+        )
         await close(self.bot)
 
     @slash_command()
@@ -104,7 +106,9 @@ class Developer(Cog):
         if not guild:
             return await inter.send("Guild not found", ephemeral=True)
         await guild.leave()
-        await inter.send(f":ok_hand: Left guild: {guild.name} ({guild.id})", ephemeral=True)
+        await inter.send(
+            f":ok_hand: Left guild: {guild.name} ({guild.id})", ephemeral=True
+        )
 
     @slash_command()
     @bot_has_permissions(embed_links=True)
@@ -152,7 +156,10 @@ class Developer(Cog):
         em.add_field(name="nextcord.Py Version", value=dpy_v)
         em.add_field(name="Total Guilds:", value=str(len(self.bot.guilds)))
         em.add_field(
-            name="Total Users:", value=str(len(set(filter(lambda m: not m.bot, self.bot.get_all_members()))))
+            name="Total Users:",
+            value=str(
+                len(set(filter(lambda m: not m.bot, self.bot.get_all_members())))
+            ),
         )
         em.add_field(name="Bot Developers:", value=f"<@{self.bot.owner_id}>")
         em.set_image(
@@ -172,6 +179,7 @@ class Developer(Cog):
         """Sync all application commands"""
         await self.bot.sync_all_application_commands()
         await inter.send("Synced all application commands", ephemeral=True)
+
 
 def setup(bot):
     bot.add_cog(Developer(bot))

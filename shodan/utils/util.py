@@ -107,9 +107,11 @@ def clean_code(content):
 def code_block(content, lang=""):
     return f"```{lang}\n{content}\n```"
 
+
 class RaiseType(NamedTuple):
     emoji: str
     color: Colour
+
 
 def humanize_time(dt: timedelta | float = None):
     """Convert a timedelta or seconds to a human-readable string"""
@@ -139,7 +141,6 @@ def humanize_time(dt: timedelta | float = None):
                 return f"{round(s, 1)} Sec"
         else:
             return f"{int(s)} Sec"
-
 
 
 class Raise:
@@ -220,25 +221,20 @@ class Raise:
                 )
 
     async def error(self) -> Message | None:
-        return await self.__response(
-            RaiseType("⚠️ ", Colour.red())
-        )
+        return await self.__response(RaiseType("⚠️ ", Colour.red()))
 
     async def info(self) -> Message | None:
-        return await self.__response(
-            RaiseType("❎ ", Colour.yellow())
-        )
+        return await self.__response(RaiseType("❎ ", Colour.yellow()))
 
     async def success(self) -> Message | None:
-        return await self.__response(
-            RaiseType("✅ ", Colour.green())
-        )
+        return await self.__response(RaiseType("✅ ", Colour.green()))
 
     async def loading(self) -> Message | None:
         return await self.__response(RaiseType("⏳", Colour.blurple()))
 
     async def custom(self, emoji: str, color: Colour) -> Message | None:
         return await self.__response(RaiseType(emoji, color))
+
 
 def get_ip() -> str:
     import socket

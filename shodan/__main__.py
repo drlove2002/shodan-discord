@@ -1,6 +1,6 @@
 import sys
-from os import environ, kill
 from argparse import ArgumentParser
+from os import environ, kill
 
 from shodan.core.bot import BaseMainBot
 from shodan.utils import logging
