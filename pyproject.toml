@@ -29,6 +29,7 @@ python-dotenv = "^1.0.0"
 branch = "master"
 version_variable = ["shodan/__init__.py:__version__","pyproject.toml:tool.poetry.version"]
 version_toml = "pyproject.toml:tool.poetry.version"
+version_source = "tag"
 upload_to_pypi = false
 upload_to_release = false
 changelog_sections = "refactor, style, docs, breaking, feature, fix"
