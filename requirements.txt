@@ -1,0 +1,4 @@
+nextcord[speed]
+uvloop
+colorama
+flask

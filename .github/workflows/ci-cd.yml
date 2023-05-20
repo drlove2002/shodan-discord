@@ -1,0 +1,29 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - 'v*'
+
+jobs:
+  release:
+    if: github.event_name == 'push' && github.ref_name == 'master'
+    runs-on: ubuntu-latest
+    concurrency: release
+
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Python Semantic Release
+        run: |
+          pip install python-semantic-release
+          git config --global user.name "github-actions"
+          git config --global user.email "action@github.com"
+          semantic-release publish -D commit_author="sudip-roy <sudiproy20yo@gmail.com>"
+        env:
+          GH_TOKEN: ${{secrets.GH_TOKEN}}
